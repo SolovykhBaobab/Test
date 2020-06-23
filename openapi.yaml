@@ -1,0 +1,767 @@
+openapi: 3.0.0
+info:
+  title: ShotDB
+  description: |
+    This is a sample ShotDB server.
+  contact:
+    email: wwang@baobabvr.com
+  license:
+    name: Private
+    url: https://baobabstudios.com
+  version: "0.3"
+servers:
+- url: https://virtserver.swaggerhub.com/w2b/ShotDB-OpenAPI3/0.3
+  description: SwaggerHub API Auto Mocking
+- url: https://shotdb.baobabapi.com/v1/test
+  description: SwaggerHub API Auto Mocking
+  variables:
+    project:
+      description: name of the project
+      default: baba
+tags:
+- name: Project
+  description: Access to project settings
+- name: Clip
+  description: Everything about clips
+- name: Bit
+  description: Bit
+- name: Maya
+  description: Maya specific operations
+paths:
+  /projectSettings:
+    get:
+      tags:
+      - Project
+      summary: Get project settings
+      operationId: getProjectSettings
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectSettings'
+    x-swagger-router-controller: project
+    x-exegesis-controller: project
+  /sequenceStructure:
+    get:
+      tags:
+      - Project
+      summary: Get the sequence structure of the project
+      operationId: getSequenceStructure
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportSettings'
+    x-swagger-router-controller: project
+    x-exegesis-controller: project
+  /clips:
+    post:
+      tags:
+      - Clip
+      summary: Add a new clip to shotDB
+      operationId: addClip
+      requestBody:
+        description: Clip object to be created in the database.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Clip'
+        required: true
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Clip'
+        "400":
+          description: Invalid input
+    x-swagger-router-controller: clips
+    x-exegesis-controller: clips
+  /clips/{clipId}:
+    get:
+      tags:
+      - Clip
+      summary: Find a clip by ID.
+      operationId: getClip
+      parameters:
+      - name: clipId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Clip'
+        "404":
+          description: clip not found
+    delete:
+      tags:
+      - Clip
+      summary: Deletes a clip
+      operationId: deleteClip
+      parameters:
+      - name: clipId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: successful operation
+        "404":
+          description: clip not found
+    patch:
+      tags:
+      - Clip
+      summary: Update writable fields of a clip.
+      operationId: patchClip
+      parameters:
+      - name: clipId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        $ref: '#/components/requestBodies/PatchClipRequest'
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Clip'
+        "400":
+          description: Invalid input
+    x-swagger-router-controller: clips
+    x-exegesis-controller: clips
+  /bits:
+    get:
+      tags:
+      - Bit
+      summary: Find bits by IDs.
+      operationId: getBits
+      parameters:
+      - name: id
+        in: query
+        description: IDs of the Bits to return
+        required: true
+        style: form
+        explode: false
+        schema:
+          type: array
+          items:
+            type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Bit'
+    post:
+      tags:
+      - Bit
+      summary: Create a new bit
+      operationId: addBit
+      requestBody:
+        $ref: '#/components/requestBodies/AddBitRequest'
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bit'
+        "400":
+          description: Bit already exists.
+    x-swagger-router-controller: bits
+    x-exegesis-controller: bits
+  /bits/status:
+    get:
+      tags:
+      - Bit
+      summary: Get status codes for bits.
+      operationId: getStatus
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  $ref: '#/components/schemas/StatusCode'
+                example:
+                  "1000-c1-b2": 3
+                  "1000-c1-b3": 1
+    x-swagger-router-controller: bits
+    x-exegesis-controller: bits
+  /bits/{bitId}:
+    get:
+      tags:
+      - Bit
+      summary: Find a bit by ID.
+      operationId: getBit
+      parameters:
+      - name: bitId
+        in: path
+        description: ID of the Bit
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bit'
+        "404":
+          description: Bit not found
+    x-swagger-router-controller: bits
+    x-exegesis-controller: bits
+  /bits/{bitId}/claim:
+    post:
+      tags:
+      - Bit
+      summary: Associate a bit with a maya file.
+      operationId: claimBit
+      parameters:
+      - name: bitId
+        in: path
+        description: ID of the Bit
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Paths'
+        required: true
+      responses:
+        "200":
+          description: successful operation
+        "400":
+          description: Invalid input
+        "404":
+          description: Bit not found
+    x-swagger-router-controller: bits
+    x-exegesis-controller: bits
+  /bits/{bitId}/publish/{department}:
+    post:
+      tags:
+      - Bit
+      summary: Publish a new version for a Bit.
+      operationId: publish
+      parameters:
+      - name: bitId
+        in: path
+        description: ID of the Bit
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: department
+        in: path
+        description: Department
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '#/components/schemas/Department'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Version'
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bit'
+        "400":
+          description: Invalid input
+        "404":
+          description: Bit not found.
+    x-swagger-router-controller: bits
+    x-exegesis-controller: bits
+  /bits/{bitId}/versions/{versionId}:
+    get:
+      tags:
+      - Bit
+      summary: Get a version of a bit.
+      operationId: getVersion
+      parameters:
+      - name: bitId
+        in: path
+        description: ID of the Bit
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: versionId
+        in: path
+        description: ID of the version
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Version'
+        "404":
+          description: Version not found.
+    x-swagger-router-controller: bits
+    x-exegesis-controller: bits
+  /bits/{bitId}/versions/{versionId}/conform/{department}:
+    post:
+      tags:
+      - Bit
+      summary: Conform to changes in a published version.
+      operationId: conform
+      parameters:
+      - name: bitId
+        in: path
+        description: ID of the Bit
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: versionId
+        in: path
+        description: ID of the version
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: department
+        in: path
+        description: Department
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '#/components/schemas/Department'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/body'
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bit'
+        "400":
+          description: Invalid input
+        "404":
+          description: Version not found
+        "409":
+          description: Already conformed
+    x-swagger-router-controller: bits
+    x-exegesis-controller: bits
+  /maya/getContent:
+    get:
+      tags:
+      - Maya
+      summary: Get all clips and bits associated with a maya file.
+      operationId: getMayaContent
+      parameters:
+      - name: mayaFilePath
+        in: path
+        description: mayaFilePath, relative to maya root.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MayaContent'
+    x-swagger-router-controller: maya
+    x-exegesis-controller: maya
+  /maya/shiftContent:
+    post:
+      tags:
+      - Maya
+      summary: Get all clips and bits associated with a maya file.
+      operationId: shiftContent
+      parameters:
+      - name: mayaFilePath
+        in: path
+        description: mayaFilePath, relative to maya root.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MayaContent'
+    x-swagger-router-controller: maya
+    x-exegesis-controller: maya
+components:
+  schemas:
+    ProjectSettings:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Baba
+        p4Stream:
+          type: string
+          example: //baba/baba
+        mayaRoot:
+          type: string
+          example: maya
+        unityRoot:
+          type: string
+          example: UnityProject/Baba
+        defaultExportSettings:
+          $ref: '#/components/schemas/ExportSettings'
+    Clip:
+      required:
+      - exportFrameRange
+      - fps
+      - frameCount
+      - id
+      - name
+      - paths
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        name:
+          type: string
+          example: MagdaTest
+        fps:
+          type: number
+          example: 24
+        frameCount:
+          type: number
+          readOnly: true
+        paths:
+          $ref: '#/components/schemas/Paths'
+        updatedAt:
+          type: string
+          format: date-time
+          readOnly: true
+        exportFrameRange:
+          $ref: '#/components/schemas/ExportFrameRange'
+    Bit:
+      required:
+      - id
+      - name
+      - sequenceInfo
+      - statusCode
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        name:
+          type: string
+          description: name of the added clip.
+          example: Magda_Test
+        sequenceInfo:
+          $ref: '#/components/schemas/SequenceInfo'
+        statusCode:
+          $ref: '#/components/schemas/StatusCode'
+        exportFrameRange:
+          $ref: '#/components/schemas/ExportFrameRange'
+        paths:
+          $ref: '#/components/schemas/Paths'
+        updatedAt:
+          type: string
+          format: date-time
+          readOnly: true
+        editorialVersion:
+          type: string
+          nullable: true
+          readOnly: true
+          example: "1560393519"
+        animationVersion:
+          type: string
+          nullable: true
+          readOnly: true
+          example: "1560393519"
+        engineeringVersion:
+          type: string
+          nullable: true
+          readOnly: true
+          example: "1560393519"
+        latest:
+          $ref: '#/components/schemas/Version'
+    ExportFrameRange:
+      type: object
+      properties:
+        start:
+          type: integer
+          example: 0
+        end:
+          type: integer
+          example: 1
+    SequenceInfo:
+      required:
+      - bit
+      - chunk
+      - sequence
+      type: object
+      properties:
+        sequence:
+          type: string
+          example: "1000"
+        chunk:
+          type: string
+          example: c1
+        bit:
+          type: string
+          example: b1
+        interactive:
+          type: boolean
+    Paths:
+      required:
+      - mayaFilePath
+      - unityAssetDirectory
+      type: object
+      properties:
+        mayaFilePath:
+          pattern: ^.*(.ma|.mb)$
+          type: string
+          description: Path to the Maya file, relative to Maya Root.
+          example: animation/baba/1000/c1/1000_c1.ma
+        unityAssetDirectory:
+          pattern: ^(A|a)ssets(\/|\\).*$
+          type: string
+          description: Unity asset directory for FlexMesh clips, relative to the Unity
+            Project folder.
+          example: Assets/_Baba/Sequences/1000/Animation/clips
+    Version:
+      required:
+      - bitId
+      - fps
+      - frameCount
+      - id
+      - notes
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+          example: "1560393519"
+        bitId:
+          type: string
+          readOnly: true
+        frameCount:
+          type: number
+          example: 100
+        fps:
+          type: number
+          example: 30
+        mayaStartFrame:
+          type: integer
+          example: 150
+        notes:
+          type: string
+          example: Added another 10 frames.
+        publishedAt:
+          type: string
+          format: date-time
+          readOnly: true
+        publishedBy:
+          readOnly: true
+          allOf:
+          - $ref: '#/components/schemas/Department'
+        conformed:
+          $ref: '#/components/schemas/Version_conformed'
+    StatusCode:
+      maximum: 7
+      minimum: 0
+      type: integer
+      description: A 0-7 integer flag describing the status of the clip. <br/>0 --
+        0b000. New bit. No version has been published yet. <br/>1 -- 0b001. Editorial
+        conformed <br/>2 -- 0b010. Animation conformed <br/>4 -- 0b100. Engineering
+        conformed <br/>... <br/>7 -- 0b111. Stable (All conformed).
+      readOnly: true
+      example: 2
+    Department:
+      type: string
+      example: Animation
+      enum:
+      - Editorial
+      - Animation
+      - Engineering
+    MayaContent:
+      type: object
+      properties:
+        bits:
+          type: array
+          items:
+            $ref: '#/components/schemas/Bit'
+        clips:
+          type: array
+          items:
+            $ref: '#/components/schemas/Clip'
+    ExportSettings:
+      type: object
+      properties:
+        exportPath:
+          type: string
+        doExport:
+          type: boolean
+          default: true
+        exportFlex:
+          type: boolean
+          default: false
+        exportAnim:
+          type: boolean
+          default: true
+        startFrame:
+          type: integer
+        endFrame:
+          type: integer
+        bitDepth:
+          type: integer
+          default: 8
+        allowScale:
+          type: boolean
+          default: true
+        useNamespaceAsName:
+          type: boolean
+          default: false
+        skinningMethod:
+          type: integer
+          default: 0
+        exportColors:
+          type: boolean
+          default: false
+    body:
+      properties:
+        mayaStartFrame:
+          type: integer
+          example: 150
+    Version_conformed:
+      type: object
+      properties:
+        editorial:
+          type: string
+          format: date-time
+        animation:
+          type: string
+          format: date-time
+        engineering:
+          type: string
+          format: date-time
+  parameters:
+    ClipId:
+      name: clipId
+      in: path
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: string
+    BitId:
+      name: bitId
+      in: path
+      description: ID of the Bit
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: string
+    VersionId:
+      name: versionId
+      in: path
+      description: ID of the version
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: string
+    Department:
+      name: department
+      in: path
+      description: Department
+      required: true
+      style: simple
+      explode: false
+      schema:
+        $ref: '#/components/schemas/Department'
+  requestBodies:
+    PatchClipRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                example: MagdaTest
+              fps:
+                type: number
+                example: 24
+              frameCount:
+                type: number
+              paths:
+                $ref: '#/components/schemas/Paths'
+              exportFrameRange:
+                $ref: '#/components/schemas/ExportFrameRange'
+    AddBitRequest:
+      content:
+        application/json:
+          schema:
+            required:
+            - name
+            - sequenceInfo
+            type: object
+            properties:
+              name:
+                type: string
+                example: Magda_Test
+              sequenceInfo:
+                $ref: '#/components/schemas/SequenceInfo'
